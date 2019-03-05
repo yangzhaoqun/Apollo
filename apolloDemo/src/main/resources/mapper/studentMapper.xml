@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yzq.dao.ITestDAO">
+	
+
+	<!-- 根据序号查询 -->
+	<select id="searchStudentByStuNo" parameterType="int" resultType="com.yzq.pojo.Student">
+		select stu_no stuNo, stu_name stuName,stu_age stuAge from student where stu_no = #{stuNo}
+	</select>
+	
+	<!-- 添加数据 -->
+	<insert id="saveStudent" parameterType="com.yzq.pojo.Student">
+		insert into student ( stu_no, stu_name,stu_age)
+		values (#{stuNo},#{stuName},#{stuAge})
+	</insert>
+
+
+</mapper>

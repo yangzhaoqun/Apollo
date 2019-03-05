@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:tx="http://www.springframework.org/schema/tx" xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+	xmlns:util="http://www.springframework.org/schema/util" xmlns:apollo="http://www.ctrip.com/schema/apollo"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans  
+            http://www.springframework.org/schema/beans/spring-beans-3.1.xsd  
+            http://www.springframework.org/schema/context  
+            http://www.springframework.org/schema/context/spring-context-3.1.xsd  
+            http://www.springframework.org/schema/tx  
+            http://www.springframework.org/schema/tx/spring-tx-3.1.xsd  
+            http://www.springframework.org/schema/util  
+            http://www.springframework.org/schema/util/spring-util-3.1.xsd  
+            http://www.springframework.org/schema/mvc
+            http://www.springframework.org/schema/mvc/spring-mvc-3.1.xsd
+            http://www.springframework.org/schema/aop
+            http://www.springframework.org/schema/aop/spring-aop-3.1.xsd
+            http://www.ctrip.com/schema/apollo http://www.ctrip.com/schema/apollo.xsd">
+
+
+
+	<!-- ===================== spring配置 ===================== -->
+	<!-- 配置扫描包 -->
+	<context:component-scan base-package="com.yzq" />
+
+
+	<!-- ===================== mybatis配置 ===================== -->
+	<!-- 读取jdbc配置文件 （ignore-unresolvable：是否忽略解析不到的属性，如果不忽略，找不到将抛出异常 ） -->
+	<context:property-placeholder location="classpath:jdbc.properties"
+		ignore-unresolvable="true" />
+
+	<!-- 使用jdbc配置文件 -->
+	<!-- destroy-method="close" 的作用是当数据库连接不使用的时候,就把该连接重新放到数据池中,方便下次使用调用. -->
+	<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource"
+		destroy-method="close">
+		<property name="driverClassName" value="${jdbc.driverClassName}" />
+		<property name="url" value="${jdbc.url}" />
+		<property name="username" value="${jdbc.username}" />
+		<property name="password" value="${jdbc.password}" />
+		<property name="maxActive" value="100" />
+		<property name="maxWait" value="1000" />
+		<property name="poolPreparedStatements" value="true" />
+		<property name="defaultAutoCommit" value="false" />
+	</bean>
+
+
+	<!-- spring和MyBatis完美整合，不需要mybatis的配置映射文件 -->
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSource" />
+		<!-- 自动扫描mapping.xml文件 -->
+		<property name="mapperLocations" value="classpath:mapper/*.xml"></property>
+	</bean>
+
+	<!-- DAO接口所在包名，Spring会自动查找其下的类 -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.yzq.dao" />
+		<property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"></property>
+	</bean>
+
+
+	<!-- 配置spring事务管理 -->
+	<!--1、定义事务管理对象(可以将此对象理解为切面) -->
+	  <bean id="transactionManager"
+        class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource" />
+    </bean>
+    
+     
+	<!-- 2、配置事务策略 -->
+	<tx:advice id="transactionAdvice" transaction-manager="transactionManager">
+        <tx:attributes>
+            <tx:method name="add*" propagation="REQUIRED" read-only="false" rollback-for="java.lang.Exception"/>
+            <tx:method name="append*" propagation="REQUIRED" read-only="false" rollback-for="java.lang.Exception"/>
+            <tx:method name="insert*" propagation="REQUIRED" read-only="false" rollback-for="java.lang.Exception"/>
+            <tx:method name="save*" propagation="REQUIRED" read-only="false" rollback-for="java.lang.Exception"/>
+            <tx:method name="update*" propagation="REQUIRED" read-only="false" rollback-for="java.lang.Exception"/>
+            <tx:method name="modify*" propagation="REQUIRED" read-only="false" rollback-for="java.lang.Exception"/>
+            <tx:method name="edit*" propagation="REQUIRED" read-only="false" rollback-for="java.lang.Exception"/>
+            <tx:method name="delete*" propagation="REQUIRED" read-only="false" rollback-for="java.lang.Exception"/>
+            <tx:method name="remove*" propagation="REQUIRED" read-only="false" rollback-for="java.lang.Exception"/>
+            <tx:method name="repair" propagation="REQUIRED" read-only="false" rollback-for="java.lang.Exception"/>
+            <tx:method name="delAndRepair" propagation="REQUIRED" read-only="false" rollback-for="java.lang.Exception"/>
+
+            <tx:method name="get*" propagation="SUPPORTS" />
+            <tx:method name="find*" propagation="SUPPORTS" />
+            <tx:method name="load*" propagation="SUPPORTS" />
+            <tx:method name="search*" propagation="SUPPORTS" />
+            <tx:method name="datagrid*" propagation="SUPPORTS" />
+
+            <tx:method name="*" propagation="SUPPORTS" />
+        </tx:attributes>
+    </tx:advice>
+	<!-- 3、配置事务应用(在哪些业务对象的哪些方法上使用事务) -->
+	<aop:config>
+        <aop:pointcut id="transactionPointcut" expression="execution(* com.yzq.service.*.*(..))" />
+        <aop:advisor pointcut-ref="transactionPointcut"
+            advice-ref="transactionAdvice" />
+    </aop:config>
+
+
+
+</beans>            
+            
