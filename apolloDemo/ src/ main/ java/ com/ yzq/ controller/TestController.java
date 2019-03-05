@@ -14,17 +14,12 @@ public class TestController {
 	/**
 	 * 根据序号查询
 	 */
-	
 	@RequestMapping("searchStudentByStuNo")
 	public void searchStudentByStuNo(){
 		System.out.println("--->开始插入数据");
 		
 		//批量插入数据，测试事务
-		iTestService.saveStudent();
-		
+		iTestService.saveStudent();	
 	}
-	
-
-
 	
 }
